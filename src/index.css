@@ -23,6 +23,20 @@ body {
   text-align: center;
 }
 
+.sample_questions {
+  display: flex;
+  background: #535252ff;
+  justify-content: space-evenly;
+  padding: "10px";
+}
+
+.question_bubble {
+  background: #0b7ef4;
+  border-radius: 25px;
+  padding: 5px 15px;
+  cursor: pointer;
+}
+
 .chat-container {
   display: flex;
   flex-direction: column;

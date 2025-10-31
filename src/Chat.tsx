@@ -8,6 +8,8 @@ export function Chat() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const q1 = "How many People logged in the today?",
+    q2 = "What were the actions taken last week?";
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -52,6 +54,24 @@ export function Chat() {
           </div>
         )}
         <div ref={chatEndRef} />
+      </div>
+      <div className="sample_questions">
+        <div
+          className="question_bubble"
+          onClick={() => {
+            setInput(q1);
+          }}
+        >
+          {q1}
+        </div>
+        <div
+          className="question_bubble"
+          onClick={() => {
+            setInput(q2);
+          }}
+        >
+          {q2}
+        </div>
       </div>
       <form className="chat-input-form" onSubmit={handleSendHandler}>
         <input
