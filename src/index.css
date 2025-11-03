@@ -27,7 +27,7 @@ body {
   display: flex;
   background: #535252ff;
   justify-content: space-evenly;
-  padding: "10px";
+  padding: 10px;
 }
 
 .question_bubble {
