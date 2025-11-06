@@ -1,7 +1,15 @@
 import { marked } from "marked";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type FormEvent,
+} from "react";
 import type { Message } from "./interface";
 import { handleSend } from "./api";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 export function Chat() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -10,7 +18,7 @@ export function Chat() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const q1 = "How many People logged in the today?",
     q2 = "What were the actions taken last week?";
-
+  const chatWindowRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -29,9 +37,68 @@ export function Chat() {
     });
   };
 
+  const handleSaveChat = useCallback(() => {
+    console.log("handleSaveChat called");
+    const chatElement = chatWindowRef.current;
+    if (!chatElement) return;
+    chatElement.classList.add("preparing-for-save");
+
+    html2canvas(chatElement, {
+      scale: 2,
+      useCORS: true,
+      onclone: () => {},
+    }).then((canvas) => {
+      chatElement.classList.remove("preparing-for-save");
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "pt",
+        format: "a4",
+      });
+
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const ratio = canvasWidth / pdfWidth;
+      const imgHeight = canvasHeight / ratio;
+
+      let heightLeft = imgHeight;
+      let position = 0;
+      pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, "PNG", 0, position, pdfWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      const date = new Date().toISOString().slice(0, 10);
+      pdf.save(`chat-log-${date}.pdf`);
+    });
+  }, []);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === "p") {
+        event.preventDefault();
+        handleSaveChat();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleSaveChat]);
+
   return (
     <div className="chat-container">
-      <div className="chat-window">
+      <div className="chat-window" ref={chatWindowRef}>
         {messages.map((msg, index) => {
           const messageText = msg.parts[0]?.text;
           if (!messageText) return null;
